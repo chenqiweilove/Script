@@ -1,2 +1,2 @@
-#Script
+## Script
 Daily work script
