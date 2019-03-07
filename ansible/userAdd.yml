@@ -1,0 +1,13 @@
+---
+- hosts: "{{ hosts }}"
+  gather_facts: false
+  tasks:
+    - name: add user
+      user: 
+        name: "{{ item.user }}"
+        password: "{{ '{{ item.passwd }}'|password_hash('sha512') }}"
+        groups: wheel
+        shell: /bin/bash
+        state: present
+      with_items:
+        - {user: "admin",passwd: admin@123 }

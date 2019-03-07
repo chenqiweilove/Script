@@ -1,0 +1,4 @@
+---
+# tasks file for zabbix-agent
+- import_tasks: zabbix-agent.yml
+  when: ansible_os_family == "RedHat"

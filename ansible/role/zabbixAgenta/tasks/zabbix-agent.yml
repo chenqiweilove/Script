@@ -1,0 +1,28 @@
+- name: copy zabbix-agent rpm to target for centos 7
+  copy:
+    src: zabbix-agent-3.0.7-1.el7.x86_64.rpm
+    dest: /tmp/ansible/rpm/
+    owner: root
+    group: root
+  when: ansible_distribution_major_version == "7"
+
+- name: install zabbix-agent
+  package:
+    name: /tmp/ansible/rpm/zabbix-agent-3.0.7-1.el7.x86_64.rpm
+    state: present
+  when: ansible_distribution_major_version == "7"
+  
+- name: copy zabbix-agent.conf
+  template:
+    src: zabbix_agentd.conf.j2
+    dest: /etc/zabbix/zabbix_agentd.conf
+    owner: root
+    group: zabbix
+    mode: 0640
+
+- name: systemd daemonreload for  zabbix-agent
+  systemd:
+    name: zabbix-agent
+    enabled: yes
+    state: started
+  when: ansible_distribution_major_version == "7"

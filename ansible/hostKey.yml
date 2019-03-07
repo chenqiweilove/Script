@@ -1,0 +1,9 @@
+---
+- name: rsync host key
+  hosts: '{{ host }}'
+  tasks:
+    - name: Set authorized key taken from file to sun
+      authorized_key:
+        user: root
+        state: present
+        key: "{{ lookup('file', '/sun/etc/ssh/id_rsa.pub') }}"

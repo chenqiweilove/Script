@@ -1,0 +1,109 @@
+- name: install python depds
+  package:
+    name: libselinux-python
+    state: present
+
+- name: install git
+  package:
+    name: git
+    state: present
+
+- name: install openssh
+  package:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - openssh-server
+    - openssh-clients
+
+- name: install net tools
+  package:
+    name: '{{ item }}'
+    state: present
+  with_items:
+    - elinks
+    - curl
+    - wget
+    - net-tools
+    - telnet
+
+- name: install ntp
+  package:
+    name: ntp
+    state: present
+
+- name: sync date
+  shell: ntpdate 0.centos.pool.ntp.org
+  ignore_errors: yes
+
+- name: disable postfix for centos 7
+  systemd:
+    - name: postfix
+    - enabled: no
+    - state: stopped
+  when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "7"
+
+- name: disabled firewalld for centos 6
+  service:
+    name: postfix
+    state: stopped
+    enabled: no
+    runlevel: 35
+  when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "6"
+
+- name: install psmisc
+  package:
+    name: psmisc
+    state: present
+
+- name: install vim
+  package:
+    name: vim-enhanced
+    state: present
+
+- name: disable selinux
+  selinux:
+    policy: targeted
+    state: disabled
+
+- name: install epel repo for centos 6
+  package:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-6.noarch.rpm
+    state: present
+  when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "6"
+
+- name: install epel repo for centos 7
+  package:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    state: present
+  when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "7"
+
+- name: enable sshd for centos 7
+  systemd:
+    name: sshd
+    state: started
+    enabled: yes
+  when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "7"
+
+- name: enable sshd for centos 6
+  service:
+    name: sshd
+    state: started
+    enabled: yes
+    runlevel: 35
+  when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "6"
+
+- name: disabled firewalld for centos 7
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+  when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "7"
+
+- name: disabled iptables for centos 6
+  service:
+    name: iptables
+    state: stopped
+    enabled: no
+    runlevel: 35
+  when: ansible_distribution_file_variety == "RedHat" and ansible_distribution_major_version == "6"

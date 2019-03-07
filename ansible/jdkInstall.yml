@@ -1,0 +1,24 @@
+---
+- name: JDK install and configuration
+  hosts: '{{ hosts }}'
+  
+  tasks:
+    - name: set the JAVA_HOME environment
+      lineinfile: dest=/etc/profile regexp="^JAVA_HOME=" line="JAVA_HOME=/usr/local/java"
+    - name: set the PATH environment
+      lineinfile: dest=/etc/profile regexp="^PATH=\$JAVA_HOME:\$PATH" line="PATH=$JAVA_HOME/bin:$PATH"
+    - name: set the CLASSPATH environment
+      lineinfile: dest=/etc/profile regexp="^CLASSPATH=" line="CLASSPATH=$JAVA_HOME/lib/dt.jar:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/sapjco3.jar"
+    - name: set the JRE_HOME environment
+      lineinfile: dest=/etc/profile regexp="^JRE_HOME" line="JRE_HOME=$JAVA_HOME/jre"
+    - name: set the LD_LIBRARY_PATH environment
+      lineinfile: dest=/etc/profile regexp="^LD_LIBRARY_PATH" line="LD_LIBRARY_PATH=dir:$LD_LIBRARY_PATH:$JAVA_HOME/jre/lib/amd64/server"
+    - name: export the JAVA_HOME LD_LIBRARY_PATH PATH
+      lineinfile: dest=/etc/profile regexp="^export JAVA_HOME" line="export JAVA_HOME LD_LIBRARY_PATH PATH"
+    - name: jdk package
+      copy: src=/root/ansible/src/jre-8u131-linux-x64.tar.gz dest=/tmp/src/
+    - name: install the jdk
+      shell: tar xf /tmp/src/jre-8u131-linux-x64.tar.gz -C /usr/local/
+    - name: Create sofe link
+      shell: ln -sv /usr/local/jre1.8.0_131 /usr/local/java
+

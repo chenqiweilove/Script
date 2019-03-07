@@ -1,0 +1,86 @@
+# RPM is use tool multipkg make  RPM
+# ansible playbook install -> php-7.1.18 and redis-4.1.1,yaf-3.0.7,swoole-4.2.13,mssql-17.3 php ext and nginx-1.14.0
+---
+- name: install
+  hosts: '{{ host }}'
+  tasks:
+    - name: package
+      copy:
+        src: /src/{{ item }}
+        dest: /tmp/ansible/rpm/
+      with_items:
+        - nginx-1.14.0-1.el7.centos.x86_64.rpm
+        - php-7.1.18-1.el7.centos.x86_64.rpm
+        - php-devel-7.1.18-1.el7.centos.x86_64.rpm
+        - php-fpm-7.1.18-1.el7.centos.x86_64.rpm
+        - php-pdo_sqlsrv-5.6.0-1.el7.x86_64.rpm
+        - php-redis-4.1.1-1.el7.x86_64.rpm
+        - php-sqlsrv-5.6.0-1.el7.x86_64.rpm
+        - php-swoole-4.2.13-1.el7.x86_64.rpm
+        - php-yaf-3.0.7-1.el7.x86_64.rpm
+        - msodbcsql17-17.3.1.1-1.x86_64.rpm
+        - mssql-tools-17.3.0.1-1.x86_64.rpm
+        - unixODBC-2.3.7-1.rh.x86_64.rpm
+        - unixODBC-devel-2.3.7-1.rh.x86_64.rpm
+    - name: install nginx php 
+      package:
+        name: /tmp/ansible/rpm/{{ item }}
+        state: present
+      with_items:
+        - nginx-1.14.0-1.el7.centos.x86_64.rpm
+        - php-7.1.18-1.el7.centos.x86_64.rpm
+        - php-devel-7.1.18-1.el7.centos.x86_64.rpm
+        - php-fpm-7.1.18-1.el7.centos.x86_64.rpm
+        - php-redis-4.1.1-1.el7.x86_64.rpm
+        - php-swoole-4.2.13-1.el7.x86_64.rpm
+        - php-yaf-3.0.7-1.el7.x86_64.rpm
+
+    - name: php-sql server ODBC install
+      shell: ACCEPT_EULA=Y yum -y localinstall /tmp/ansible/rpm/msodbcsql17-17.3.1.1-1.x86_64.rpm   
+      shell: ACCEPT_EULA=Y yum -y localinstall /tmp/ansible/rpm/mssql-tools-17.3.0.1-1.x86_64.rpm
+      shell: yum -y localinstall /tmp/ansible/rpm/unixODBC-devel-2.3.7-1.rh.x86_64.rpm /tmp/ansible/rpm/unixODBC-2.3.7-1.rh.x86_64.rpm
+
+    - name: php-sql server lib install 
+      package:
+        name: /tmp/ansible/rpm/{{ item }}
+        state: present
+      with_items:
+        - php-pdo_sqlsrv-5.6.0-1.el7.x86_64.rpm
+        - php-sqlsrv-5.6.0-1.el7.x86_64.rpm
+
+    - name: mkdir dir
+      file:
+        state: directory
+        path: /zdata/{{ item }}
+        owner: nobody
+        group: root
+        mode: 0755
+      with_items:
+        - phplogs
+        - wwwlogs
+
+    - name: nginx conf
+      copy:
+        src: /etc/nginx/conf/
+        dest: /opt/nginx/conf/
+
+    - name: php-fpm conf
+      copy:
+        src: /etc/php/php-fpm.d/
+        dest: /opt/php/etc/php-fpm.d/
+
+    - name: php conf
+      copy:
+        src: /etc/php/conf/php.ini
+        dest: /opt/php/etc/
+
+    - name: systemd daemonreload
+      systemd:
+        name: '{{ item }}'
+        daemon_reload: yes
+        enabled: yes
+        state: started
+      with_items:
+        - nginx
+        - php-fpm
+
